@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <iostream>
+#include <sstream>
 
 //Glboal variables, functions, classes
 
@@ -29,27 +30,81 @@ int main()
 		return 1;
 	}
 
+	sf::Text score;
+	score.setFont(font);
+	score.setCharacterSize(30);
+	score.setColor(sf::Color::Red);
+	score.setPosition(350, 10);
+	score.setString("0 : 0");
+
+	// Images
+	sf::Texture tex_pad;
+	sf::Texture tex_ball;
+	sf::Texture tex_background;
+	if (tex_pad.loadFromFile("Data/pad.png") == false)
+	{
+		return -1;
+	}
+
+	if (tex_ball.loadFromFile("Data/ball.png") == false)
+	{
+		return -1;
+	}
+
+	if (tex_background.loadFromFile("Data/background.png") == false)
+	{
+		return -1;
+	}
+
+	// Sounds
+	sf::SoundBuffer buff_hit;
+
+	sf::Sound hit;
+
+	hit.setBuffer(buff_hit);
+	if (buff_hit.loadFromFile("Data/hit.wav") == false)
+	{
+		return -1;
+	}
 	// States
-	bool rButton = false;
-	bool leftButton = false;
-	bool rightButton = false;
-	bool upButton = false;
-	bool downButton = false;
+	bool up = false;
+	bool down = false;
 
 	// Variables
-	int rectRotation = 0;
-	int xVelocity = 0;
-	int yVelocity = 0;
+	
+	int yVelocityPad1 = 0;
+
+	int xVelocityBall = -5;
+	int yVelocityBall = -5;
+
+	int yVelocityPad2 = 0;
+
+	int pad1score = 0;
+	int pad2score = 0;
 
 	// Shapes
-	sf::RectangleShape shape1;
-	shape1.setSize(sf::Vector2f(50, 50));
-	shape1.setPosition(400, 300);
+	sf::RectangleShape background;
+	background.setSize(sf::Vector2f(800, 600));
+	background.setPosition(0, 0);
+	background.setTexture(&tex_background);
 
-	sf::RectangleShape shape2;
-	shape2.setSize(sf::Vector2f(100, 200));
-	shape2.setPosition(200, 200);
-	shape2.setFillColor(sf::Color::Red);
+	// Pad1
+	sf::RectangleShape pad1;
+	pad1.setSize(sf::Vector2f(50, 100));
+	pad1.setPosition(50, 200);
+	pad1.setTexture(&tex_pad);
+
+	// Pad2
+	sf::RectangleShape pad2;
+	pad2.setSize(sf::Vector2f(50, 100));
+	pad2.setPosition(700, 200);
+	pad2.setTexture(&tex_pad);
+
+	// Ball
+	sf::RectangleShape ball;
+	ball.setSize(sf::Vector2f(50, 50));
+	ball.setPosition(400, 200);
+	ball.setTexture(&tex_ball);
 
 	//Game loop
 	while (play == true)
@@ -63,100 +118,126 @@ int main()
 				//Set play to false in order to stop the game loop
 				play = false;
 			}
-
-			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R)
+			// key pressed
+			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Up)
 			{
-				rButton = true;
+				up = true;
 			}
 
-			if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)
+			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Down)
 			{
-				rButton = false;
+				down = true;
 			}
 
-			if (event.type == sf::Event::KeyPressed)
+			// key released
+			if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Up)
 			{
-				if (event.key.code == sf::Keyboard::Left) leftButton = true;
-				if (event.key.code == sf::Keyboard::Right) rightButton = true;
-				if (event.key.code == sf::Keyboard::Up) upButton = true;
-				if (event.key.code == sf::Keyboard::Down) downButton = true;
+				up = false;
 			}
 
-			if (event.type == sf::Event::KeyReleased)
+			if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Down)
 			{
-				if (event.key.code == sf::Keyboard::Left) leftButton = false;
-				if (event.key.code == sf::Keyboard::Right) rightButton = false;
-				if (event.key.code == sf::Keyboard::Up) upButton = false;
-				if (event.key.code == sf::Keyboard::Down) downButton = false;
+				down = false;
 			}
 		}
 
 		// Logic
-		if (rButton == true)
+		if (up == true)
 		{
-			rectRotation++;
-			shape1.setRotation(rectRotation);
+			yVelocityPad1 = -5;
 		}
 
-		// Movement
-		if (rightButton == true)
+		if (down == true)
 		{
-			xVelocity = 5;
-		}
-		if (leftButton == true)
-		{
-			xVelocity = -5;
-		}
-
-		if (leftButton == true && rightButton == true)
-		{
-			xVelocity = 0;
-		}
-
-		if (leftButton == false && rightButton == false)
-		{
-			xVelocity = 0;
-		}
-
-		if (upButton == true)
-		{
-			yVelocity = -5;
-		}
-		if (downButton == true)
-		{
-			yVelocity = 5;
-		}
-
-		if (upButton == true && downButton == true)
-		{
-			yVelocity = 0;
-		}
-
-		if (upButton == false && downButton == false)
-		{
-			yVelocity = 0;
-		}
-
-		// Move
-		shape1.move(xVelocity, 0);
-
-		if (shape1.getGlobalBounds().intersects(shape2.getGlobalBounds()) == true)
-		{
-			shape1.move(-xVelocity, 0);
-		}
-
-		shape1.move(0, yVelocity);
-
-		if (shape1.getGlobalBounds().intersects(shape2.getGlobalBounds()) == true)
-		{
-			shape1.move(0, -yVelocity);
+			yVelocityPad1 = 5;
 		}
 		
+		if (up == true && down == true) 
+		{
+			yVelocityPad1 = 0;
+		}
+
+		if (up == false && down == false)
+		{
+			yVelocityPad1 = 0;
+		}
+
+		pad1.move(0, yVelocityPad1);
+
+		// Out of bounds check
+		if (pad1.getPosition().y < 0)
+		{
+			pad1.setPosition(50, 0);
+		}
+
+		if (pad1.getPosition().y > 500)
+		{
+			pad1.setPosition(50, 500);
+		}	
+
+		// Pad2
+		if (ball.getPosition().y < pad2.getPosition().y)
+		{
+			yVelocityPad2 = -2;
+		}
+
+		if (ball.getPosition().y > pad2.getPosition().y)
+		{
+			yVelocityPad2 = 2;
+		}
+
+		pad2.move(0, yVelocityPad2);
+
+		// Ball
+		ball.move(xVelocityBall, yVelocityBall);
+
+		if (ball.getPosition().y < 0)
+		{
+			yVelocityBall = -yVelocityBall;
+		}
+
+		if (ball.getPosition().y > 550)
+		{
+			yVelocityBall = -yVelocityBall;
+		}
+
+		if (ball.getPosition().x < -50)
+		{
+			pad2score++;
+			ball.setPosition(300, 200);
+		}
+
+		if (ball.getPosition().x > 850)
+		{
+			pad1score++;
+			ball.setPosition(300, 200);
+		}
+
+		if (ball.getGlobalBounds().intersects(pad1.getGlobalBounds()) == true)
+		{
+			xVelocityBall = -xVelocityBall;
+			hit.play();
+		}
+
+		if (ball.getGlobalBounds().intersects(pad2.getGlobalBounds()) == true)
+		{
+			xVelocityBall = -xVelocityBall;
+			hit.play();
+		}
+
 		//RENDERING
 		window.clear();
 
-		window.draw(shape1);
-		window.draw(shape2);
+		window.draw(background);
+		window.draw(pad1);
+		window.draw(pad2);
+		window.draw(ball);
+
+		// Score
+		std::stringstream text;
+		text << pad1score << " : " << pad2score;
+		score.setString(text.str());
+		window.draw(score);
 
 		window.display();
 	}
